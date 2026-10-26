@@ -4,299 +4,456 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#080b18">
-<title>ECHO SHIFT</title>
-
+<meta name="theme-color" content="#080d1c">
+<title>ECHO SHIFT 0.3</title>
 <style>
 :root {
   color-scheme: dark;
-  --cyan: #70f5ff;
-  --violet: #bd72ff;
-  --panel: #111a31;
+  --bg: #080d1c;
+  --panel: #111a30;
+  --cyan: #61f4ff;
+  --purple: #a78bfa;
+  --text: #eaf4ff;
 }
 * { box-sizing: border-box; }
-body {
+html, body {
   margin: 0;
-  min-height: 100vh;
-  background: #080b18;
-  color: #eef5ff;
+  width: 100%;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
   font-family: system-ui, -apple-system, sans-serif;
+  overscroll-behavior: none;
+}
+body {
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+}
+#app {
+  width: min(100%, 1000px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+header {
   display: flex;
   align-items: center;
-  flex-direction: column;
-  padding: 14px;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
 }
-header { text-align: center; margin: 4px 0 12px; }
-h1 {
-  font-size: clamp(25px, 6vw, 42px);
-  letter-spacing: .2em;
-  color: var(--cyan);
-  text-shadow: 0 0 22px #1688bd;
-  margin: 0;
+.logo {
+  font-size: clamp(20px, 4vw, 30px);
+  font-weight: 900;
+  letter-spacing: 3px;
 }
-header p { color: #91a6cc; font-size: 11px; letter-spacing: .18em; }
-main { width: 100%; max-width: 900px; }
-#game {
+.logo span { color: var(--cyan); }
+#status {
+  color: #a8bdd9;
+  font-size: 12px;
+}
+#gameWrap {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #293b60;
+  border-radius: 14px;
+  background: #080d1c;
+  box-shadow: 0 0 35px #13274a80;
+}
+canvas {
   display: block;
   width: 100%;
   height: auto;
-  border: 1px solid #30466c;
-  border-radius: 12px;
-  background: #0c1327;
+  aspect-ratio: 16 / 9;
   touch-action: none;
 }
-.hud {
+#hud {
   display: flex;
   flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 12px 2px;
-  color: #b8c9e8;
-  font-size: 13px;
+  padding: 10px 12px;
+  background: #10182b;
+  border: 1px solid #243451;
+  border-radius: 12px;
 }
-.hud strong { color: var(--cyan); }
-.controls {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
+.hudGroup { display: flex; gap: 8px; flex-wrap: wrap; }
+.stat {
+  font-size: 12px;
+  padding: 6px 9px;
+  border-radius: 7px;
+  background: #1a2943;
+  color: #d8e9ff;
 }
+.stat strong { color: var(--cyan); }
 button {
-  border: 1px solid #3c628a;
-  border-radius: 10px;
-  color: #eefaff;
-  background: #14223e;
-  padding: 13px 6px;
-  min-height: 48px;
   font: inherit;
-  font-size: 13px;
-  font-weight: 650;
+  color: var(--text);
+  background: #192844;
+  border: 1px solid #395071;
+  border-radius: 9px;
+  padding: 9px 13px;
   cursor: pointer;
-  touch-action: none;
+  touch-action: manipulation;
+}
+button:hover { background: #253b60; }
+button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+button.primary {
+  background: #087e99;
+  border-color: #61f4ff;
+  font-weight: 800;
+}
+button:active { transform: scale(.98); }
+#controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1.2fr;
+  gap: 8px;
+}
+.control {
+  min-height: 54px;
+  font-size: 15px;
+  font-weight: 750;
   user-select: none;
   -webkit-user-select: none;
 }
-button:active, button.active {
-  background: #254a70;
-  border-color: var(--cyan);
+.control small {
+  display: block;
+  font-size: 10px;
+  color: #a9c5e8;
+  font-weight: 500;
 }
-button.primary {
-  background: #164b64;
-  border-color: var(--cyan);
-}
-#status {
-  min-height: 28px;
-  text-align: center;
-  color: var(--cyan);
-  font-size: 14px;
-  padding: 8px 0;
-}
-.help {
-  color: #899cbe;
+#help {
+  color: #9db2d0;
   font-size: 12px;
-  line-height: 1.8;
+  line-height: 1.65;
+  padding: 0 3px;
+}
+#toast {
+  position: fixed;
+  z-index: 10;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%) translateY(20px);
+  opacity: 0;
+  pointer-events: none;
+  background: #142641;
+  border: 1px solid var(--cyan);
+  color: white;
+  padding: 11px 17px;
+  border-radius: 10px;
+  transition: .2s;
+  max-width: 90vw;
   text-align: center;
 }
-@media(max-width: 520px) {
-  body { padding: 8px; }
-  .controls { gap: 5px; }
-  button { font-size: 11px; padding: 10px 2px; }
-  .hud { font-size: 11px; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+@media (min-width: 760px) {
+  #controls { grid-template-columns: repeat(4, 1fr); }
+  .control { min-height: 48px; }
 }
 </style>
 </head>
-
 <body>
-<header>
-  <h1>ECHO SHIFT</h1>
-  <p>BREAK THE RULES OF REALITY</p>
-</header>
+<div id="app">
+  <header>
+    <div class="logo">ECHO <span>SHIFT</span> <small style="font-size:11px;color:#8ca2c2">0.3</small></div>
+    <div id="status">GRAVITY IS YOUR KEY</div>
+  </header>
 
-<main>
-  <canvas id="game" width="800" height="450"
-    aria-label="ECHO SHIFT puzzle platform game"></canvas>
-
-  <div class="hud">
-    <span id="levelLabel">STAGE 1</span>
-    <span id="gravityLabel">重力：↓ DOWN</span>
-    <span id="switchLabel">SWITCH：OFF</span>
+  <div id="gameWrap">
+    <canvas id="game" width="960" height="540" aria-label="ECHO SHIFT ゲーム画面"></canvas>
   </div>
 
-  <div class="controls">
-    <button id="left">◀ LEFT</button>
-    <button id="right">RIGHT ▶</button>
-    <button id="jump">JUMP</button>
-    <button id="shift" class="primary">↕ SHIFT</button>
-    <button id="retry">↻ RETRY</button>
-  </div>
+  <section id="hud">
+    <div class="hudGroup">
+      <div class="stat">STAGE <strong id="stageStat">—</strong></div>
+      <div class="stat">SHARDS <strong id="shardStat">0</strong></div>
+      <div class="stat">TIME <strong id="timeStat">00:00</strong></div>
+      <div class="stat">GRAVITY <strong id="gravityStat">DOWN</strong></div>
+    </div>
+    <div class="hudGroup">
+      <button id="pauseBtn">Ⅱ 一時停止</button>
+      <button id="restartBtn">↻ リスタート</button>
+      <button id="saveBtn">保存</button>
+    </div>
+  </section>
 
-  <div id="status">STARTを押して冒険を始めよう。</div>
-  <div class="help">
-    キーボード：← → / A D で移動、Spaceでジャンプ、Eで重力反転、Rでリトライ。<br>
-    iPad：画面下のボタンで操作。スイッチを起動して、ゴールを目指そう。
+  <section id="controls">
+    <button class="control" id="leftBtn">◀ 左<small>A / ←</small></button>
+    <button class="control" id="rightBtn">右 ▶<small>D / →</small></button>
+    <button class="control" id="jumpBtn">▲ ジャンプ<small>Space / ↑</small></button>
+    <button class="control primary" id="shiftBtn">⇅ 重力反転<small>Shift / X</small></button>
+  </section>
+
+  <div id="help">
+    操作：左右移動で進み、ジャンプと重力反転を使って出口を目指そう。スイッチで扉を開き、危険地帯を避けて、チェックポイントを確保しよう。結晶はスコアに加算される。<br>
+    キーボード：← → / A D 移動、Space / ↑ ジャンプ、X / Shift 重力反転、P 一時停止、R リスタート。
   </div>
-</main>
+</div>
+<div id="toast"></div>
 
 <script>
-(() => {
-  "use strict";
+"use strict";
 
+(() => {
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
-  const statusEl = document.getElementById("status");
-  const levelLabel = document.getElementById("levelLabel");
-  const gravityLabel = document.getElementById("gravityLabel");
-  const switchLabel = document.getElementById("switchLabel");
 
   const W = canvas.width;
   const H = canvas.height;
+  const FLOOR_Y = 500;
+  const CEILING_Y = 40;
+  const SAVE_KEY = "echo_shift_save_03";
 
-  // ステージはすべて800 x 450のワールド座標。
-  // solidは床・足場・天井・扉。
+  const $ = id => document.getElementById(id);
+
   const levels = [
     {
       name: "AWAKENING",
-      subtitle: "重力を反転させて進め",
-      start: { x: 42, y: 370 },
-      solids: [
-        {x:0,y:410,w:800,h:40},
-        {x:110,y:330,w:145,h:14},
-        {x:330,y:260,w:130,h:14},
-        {x:530,y:190,w:140,h:14},
-        {x:0,y:0,w:800,h:12}
+      subtitle: "重力を反転させ、出口へ",
+      start: { x: 70, y: 448 },
+      goal: { x: 870, y: 102, w: 48, h: 58 },
+      platforms: [
+        { x: 0, y: 500, w: 960, h: 40 },
+        { x: 190, y: 420, w: 145, h: 18 },
+        { x: 395, y: 345, w: 150, h: 18 },
+        { x: 590, y: 270, w: 140, h: 18 },
+        { x: 760, y: 195, w: 130, h: 18 },
+        { x: 0, y: 40, w: 960, h: 22 }
       ],
-      hazards: [],
-      switch: null,
-      door: null,
-      checkpoint: null,
-      goal: {x:720,y:130,w:34,h:54}
+      hazards: [
+        { x: 345, y: 480, w: 65, h: 20 },
+        { x: 540, y: 480, w: 70, h: 20 }
+      ],
+      switches: [],
+      doors: [],
+      checkpoints: [{ x: 650, y: 232, w: 20, h: 38 }],
+      shards: [{ x: 255, y: 385 }, { x: 465, y: 310 }, { x: 655, y: 235 }]
     },
     {
       name: "LOCKDOWN",
-      subtitle: "スイッチで扉を開け",
-      start: { x: 35, y: 370 },
-      solids: [
-        {x:0,y:410,w:800,h:40},
-        {x:130,y:330,w:130,h:14},
-        {x:345,y:275,w:125,h:14},
-        {x:515,y:330,w:100,h:14},
-        {x:0,y:0,w:800,h:12}
+      subtitle: "スイッチで扉を解除しろ",
+      start: { x: 65, y: 448 },
+      goal: { x: 875, y: 425, w: 44, h: 58 },
+      platforms: [
+        { x: 0, y: 500, w: 960, h: 40 },
+        { x: 140, y: 415, w: 155, h: 18 },
+        { x: 350, y: 330, w: 150, h: 18 },
+        { x: 530, y: 415, w: 145, h: 18 },
+        { x: 700, y: 350, w: 190, h: 18 },
+        { x: 0, y: 40, w: 960, h: 22 }
       ],
       hazards: [
-        {x:270,y:394,w:58,h:16},
-        {x:465,y:394,w:44,h:16}
+        { x: 295, y: 480, w: 65, h: 20 },
+        { x: 485, y: 480, w: 70, h: 20 },
+        { x: 675, y: 480, w: 65, h: 20 }
       ],
-      switch: {x:380,y:247,w:28,h:28,active:false},
-      door: {x:655,y:285,w:18,h:125},
-      checkpoint: {x:535,y:370,w:25,h:40,active:false},
-      goal: {x:725,y:350,w:34,h:54}
+      switches: [{ x: 400, y: 294, w: 28, h: 36, doorId: "A" }],
+      doors: [{ id: "A", x: 815, y: 390, w: 22, h: 110, open: false }],
+      checkpoints: [{ x: 570, y: 377, w: 20, h: 38 }],
+      shards: [{ x: 210, y: 380 }, { x: 425, y: 294 }, { x: 745, y: 315 }]
     },
     {
       name: "ECHO CORE",
-      subtitle: "すべての力を使いこなせ",
-      start: { x: 35, y: 370 },
-      solids: [
-        {x:0,y:410,w:800,h:40},
-        {x:110,y:335,w:115,h:14},
-        {x:285,y:270,w:115,h:14},
-        {x:465,y:205,w:115,h:14},
-        {x:620,y:300,w:100,h:14},
-        {x:0,y:0,w:800,h:12}
+      subtitle: "重力を操り、核心へ",
+      start: { x: 65, y: 448 },
+      goal: { x: 875, y: 240, w: 48, h: 58 },
+      platforms: [
+        { x: 0, y: 500, w: 960, h: 40 },
+        { x: 125, y: 410, w: 120, h: 18 },
+        { x: 275, y: 315, w: 130, h: 18 },
+        { x: 455, y: 225, w: 130, h: 18 },
+        { x: 635, y: 315, w: 130, h: 18 },
+        { x: 785, y: 380, w: 110, h: 18 },
+        { x: 0, y: 40, w: 960, h: 22 }
       ],
       hazards: [
-        {x:230,y:394,w:42,h:16},
-        {x:415,y:394,w:42,h:16},
-        {x:590,y:394,w:35,h:16}
+        { x: 245, y: 480, w: 80, h: 20 },
+        { x: 420, y: 480, w: 80, h: 20 },
+        { x: 600, y: 480, w: 80, h: 20 },
+        { x: 760, y: 480, w: 80, h: 20 }
       ],
-      switch: {x:325,y:242,w:28,h:28,active:false},
-      door: {x:690,y:190,w:18,h:110},
-      checkpoint: {x:480,y:165,w:25,h:40,active:false},
-      goal: {x:735,y:235,w:34,h:54}
+      switches: [{ x: 325, y: 279, w: 28, h: 36, doorId: "B" }],
+      doors: [{ id: "B", x: 810, y: 185, w: 24, h: 130, open: false }],
+      checkpoints: [{ x: 495, y: 187, w: 20, h: 38 }],
+      shards: [{ x: 180, y: 375 }, { x: 340, y: 280 }, { x: 520, y: 190 }, { x: 700, y: 280 }]
+    },
+    {
+      name: "FRACTURE",
+      subtitle: "反転のタイミングを見極めろ",
+      start: { x: 65, y: 448 },
+      goal: { x: 875, y: 100, w: 48, h: 58 },
+      platforms: [
+        { x: 0, y: 500, w: 960, h: 40 },
+        { x: 150, y: 425, w: 100, h: 16 },
+        { x: 310, y: 350, w: 100, h: 16 },
+        { x: 470, y: 275, w: 100, h: 16 },
+        { x: 630, y: 200, w: 100, h: 16 },
+        { x: 790, y: 145, w: 110, h: 16 },
+        { x: 0, y: 40, w: 960, h: 22 }
+      ],
+      hazards: [
+        { x: 255, y: 480, w: 55, h: 20 },
+        { x: 415, y: 480, w: 55, h: 20 },
+        { x: 575, y: 480, w: 55, h: 20 },
+        { x: 735, y: 480, w: 55, h: 20 }
+      ],
+      switches: [],
+      doors: [],
+      checkpoints: [{ x: 655, y: 162, w: 20, h: 38 }],
+      shards: [{ x: 195, y: 390 }, { x: 355, y: 315 }, { x: 515, y: 240 }, { x: 675, y: 165 }]
+    },
+    {
+      name: "THE LAST SIGNAL",
+      subtitle: "すべての反転をつなげ",
+      start: { x: 65, y: 448 },
+      goal: { x: 870, y: 105, w: 52, h: 60 },
+      platforms: [
+        { x: 0, y: 500, w: 960, h: 40 },
+        { x: 120, y: 420, w: 115, h: 16 },
+        { x: 285, y: 340, w: 115, h: 16 },
+        { x: 450, y: 260, w: 115, h: 16 },
+        { x: 615, y: 340, w: 115, h: 16 },
+        { x: 775, y: 220, w: 120, h: 16 },
+        { x: 0, y: 40, w: 960, h: 22 }
+      ],
+      hazards: [
+        { x: 235, y: 480, w: 55, h: 20 },
+        { x: 400, y: 480, w: 55, h: 20 },
+        { x: 565, y: 480, w: 55, h: 20 },
+        { x: 730, y: 480, w: 55, h: 20 }
+      ],
+      switches: [
+        { x: 325, y: 304, w: 28, h: 36, doorId: "C" },
+        { x: 490, y: 224, w: 28, h: 36, doorId: "D" }
+      ],
+      doors: [
+        { id: "C", x: 575, y: 275, w: 22, h: 65, open: false },
+        { id: "D", x: 820, y: 145, w: 22, h: 75, open: false }
+      ],
+      checkpoints: [{ x: 645, y: 302, w: 20, h: 38 }],
+      shards: [{ x: 175, y: 385 }, { x: 340, y: 305 }, { x: 505, y: 225 }, { x: 670, y: 305 }, { x: 830, y: 185 }]
     }
   ];
 
+  let stageIndex = 0;
+  let mode = "title";
+  let pausedFrom = "playing";
+  let stage = null;
+  let gravity = 1;
+  let shardsCollected = 0;
+  let totalShards = 0;
+  let elapsed = 0;
+  let bestTime = null;
+  let cameraShake = 0;
+  let flash = 0;
+  let particles = [];
+  let toastTimer = null;
+  let levelStartTime = 0;
+  let stageDeaths = 0;
+  let transitionTimer = 0;
+  let overlayAlpha = 0;
+  let jumpQueued = false;
+  let shiftQueued = false;
+  let interactQueued = false;
+  let lastFrame = 0;
+  let saveDirty = false;
+
+  const keys = new Set();
+  const input = { left: false, right: false, jump: false };
+
   const player = {
-    x: 40, y: 370, w: 22, h: 30,
-    vx: 0, vy: 0, grounded: false
+    x: 70, y: 440, w: 28, h: 34,
+    vx: 0, vy: 0,
+    speed: 265,
+    jumpPower: 520,
+    grounded: false,
+    coyote: 0,
+    jumpBuffer: 0,
+    invulnerable: 0,
+    facing: 1
   };
 
-  const input = { left:false, right:false };
-  const keys = Object.create(null);
+  let checkpoint = { x: 70, y: 440, gravity: 1 };
 
-  let stage = 0;
-  let gravity = 1;
-  let mode = "title";
-  let switchOn = false;
-  let checkpointPos = null;
-  let invulnerable = 0;
-  let particles = [];
-  let flash = 0;
-  let frame = 0;
-  let previousTime = 0;
-
-  const rect = (x,y,w,h) => ({x,y,w,h});
-
-  function overlap(a,b) {
-    return a.x < b.x+b.w &&
-      a.x+a.w > b.x &&
-      a.y < b.y+b.h &&
-      a.y+a.h > b.y;
+  function cloneLevel(index) {
+    const source = levels[index];
+    return {
+      ...source,
+      platforms: source.platforms.map(o => ({ ...o })),
+      hazards: source.hazards.map(o => ({ ...o })),
+      switches: source.switches.map(o => ({ ...o, activated: false })),
+      doors: source.doors.map(o => ({ ...o })),
+      checkpoints: source.checkpoints.map(o => ({ ...o, activated: false })),
+      shards: source.shards.map(o => ({ ...o, collected: false }))
+    };
   }
 
-  function currentLevel() {
-    return levels[stage];
+  function showToast(message) {
+    const el = $("toast");
+    el.textContent = message;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
   }
 
-  function solids() {
-    const result = currentLevel().solids.slice();
-    const door = currentLevel().door;
-    if (door && !switchOn) result.push(door);
-    return result;
+  function fmtTime(seconds) {
+    const s = Math.max(0, Math.floor(seconds));
+    return String(Math.floor(s / 60)).padStart(2, "0") + ":" +
+      String(s % 60).padStart(2, "0");
   }
 
-  function setStatus(text) {
-    statusEl.textContent = text;
+  function overlap(a, b) {
+    return a.x < b.x + b.w &&
+      a.x + a.w > b.x &&
+      a.y < b.y + b.h &&
+      a.y + a.h > b.y;
   }
 
-  function updateHUD() {
-    levelLabel.textContent =
-      `STAGE ${stage+1} / ${levels.length} — ${currentLevel().name}`;
-    gravityLabel.textContent =
-      gravity === 1 ? "重力：↓ DOWN" : "重力：↑ UP";
-    switchLabel.textContent =
-      currentLevel().switch
-        ? "SWITCH：" + (switchOn ? "ON" : "OFF")
-        : "SWITCH：—";
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
   }
 
-  function resetPlayer(position) {
+  function resetPlayer(position, invulnerable = 0.8) {
     player.x = position.x;
     player.y = position.y;
     player.vx = 0;
     player.vy = 0;
     player.grounded = false;
-    invulnerable = 45;
+    player.coyote = 0;
+    player.jumpBuffer = 0;
+    player.invulnerable = invulnerable;
   }
 
-  function loadStage(index) {
-    stage = index;
-    gravity = 1;
-    switchOn = false;
-    particles = [];
-    flash = 0;
-
-    const level = currentLevel();
-    level.switch && (level.switch.active = false);
-    level.checkpoint && (level.checkpoint.active = false);
-
-    checkpointPos = {x:level.start.x, y:level.start.y};
-    resetPlayer(checkpointPos);
+  function loadStage(index, preserveElapsed = false) {
+    stageIndex = clamp(index, 0, levels.length - 1);
+    stage = cloneLevel(stageIndex);
     mode = "playing";
-    updateHUD();
-    setStatus(level.subtitle);
+    gravity = 1;
+    shardsCollected = 0;
+    totalShards = stage.shards.length;
+    stageDeaths = 0;
+    checkpoint = {
+      x: stage.start.x,
+      y: stage.start.y,
+      gravity: 1
+    };
+    resetPlayer(stage.start, 1);
+    particles = [];
+    cameraShake = 0;
+    flash = 0;
+    transitionTimer = 0;
+    if (!preserveElapsed) elapsed = 0;
+    levelStartTime = elapsed;
+    $("status").textContent = stage.name;
+    updateHud();
+    saveDirty = true;
   }
 
   function startGame() {
     loadStage(0);
+    showToast("ECHO SHIFT 起動");
   }
 
   function restartStage() {
@@ -305,478 +462,838 @@ button.primary {
       return;
     }
     if (mode === "victory") {
-      startGame();
+      loadStage(0);
       return;
     }
-
-    switchOn = false;
-    const level = currentLevel();
-    if (level.switch) level.switch.active = false;
-    if (level.checkpoint) level.checkpoint.active = false;
-
-    checkpointPos = {x:level.start.x, y:level.start.y};
-    gravity = 1;
-    resetPlayer(checkpointPos);
+    if (mode === "stageclear") {
+      loadStage(stageIndex);
+      return;
+    }
+    gravity = checkpoint.gravity;
+    resetPlayer(checkpoint, 0.8);
+    stageDeaths = Math.max(0, stageDeaths);
     mode = "playing";
-    updateHUD();
-    setStatus("ステージをリスタート！");
+    showToast("チェックポイントから再開");
   }
 
-  function shiftGravity() {
-    if (mode !== "playing") return;
+  function setPaused() {
+    if (mode === "playing") {
+      pausedFrom = "playing";
+      mode = "paused";
+    } else if (mode === "paused") {
+      mode = pausedFrom;
+    }
+  }
 
+  function toggleGravity() {
+    if (mode !== "playing") return;
     gravity *= -1;
     player.vy = 0;
     player.grounded = false;
-    flash = 12;
-
-    burst(player.x+player.w/2, player.y+player.h/2,
-      gravity === 1 ? "#70f5ff" : "#bd72ff", 14);
-
-    updateHUD();
-    setStatus(gravity === 1 ? "重力反転：DOWN" : "重力反転：UP");
+    player.coyote = 0;
+    player.y += gravity === 1 ? 2 : -2;
+    flash = 0.18;
+    cameraShake = 5;
+    burst(player.x + player.w / 2, player.y + player.h / 2, "#61f4ff", 12);
+    saveDirty = true;
   }
 
   function jump() {
-    if (mode !== "playing" || !player.grounded) return;
-    player.vy = -gravity * 9.3;
-    player.grounded = false;
-    burst(player.x+player.w/2, player.y+player.h/2,
-      "#70f5ff", 5);
+    if (mode !== "playing") return;
+    player.jumpBuffer = 0.15;
   }
 
-  function burst(x,y,color,count) {
-    for (let i=0; i<count; i++) {
+  function burst(x, y, color, count = 8) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 35 + Math.random() * 180;
       particles.push({
-        x,y,
-        vx:(Math.random()-.5)*4,
-        vy:(Math.random()-.5)*4,
-        life:20+Math.random()*18,
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 0.35 + Math.random() * 0.5,
+        maxLife: 0.85,
+        size: 2 + Math.random() * 4,
         color
       });
     }
   }
 
-  function respawn() {
-    resetPlayer(checkpointPos || currentLevel().start);
-    gravity = 1;
-    flash = 8;
-    updateHUD();
-    setStatus("再構成完了。もう一度挑戦しよう！");
-    burst(player.x+player.w/2,player.y+player.h/2,"#ff587d",12);
+  function activateSwitch(sw) {
+    if (sw.activated) return;
+    sw.activated = true;
+    const door = stage.doors.find(d => d.id === sw.doorId);
+    if (door) door.open = true;
+    burst(sw.x + sw.w / 2, sw.y + sw.h / 2, "#a78bfa", 18);
+    cameraShake = 3;
+    showToast("スイッチ起動 — 扉が開いた");
+    saveDirty = true;
   }
 
-  function activateSwitch() {
-    const s = currentLevel().switch;
-    if (!s || switchOn) return;
-    if (overlap(player,s)) {
-      switchOn = true;
-      s.active = true;
-      burst(s.x+s.w/2,s.y+s.h/2,"#70f5ff",24);
-      updateHUD();
-      setStatus("SWITCH ONLINE — 扉が開いた！");
-    }
+  function activateCheckpoint(c) {
+    if (c.activated) return;
+    c.activated = true;
+    checkpoint = {
+      x: c.x + c.w / 2 - player.w / 2,
+      y: gravity === 1 ? c.y - player.h : c.y + c.h,
+      gravity
+    };
+    burst(c.x + c.w / 2, c.y + c.h / 2, "#69ffb5", 14);
+    showToast("チェックポイント確保");
+    saveDirty = true;
   }
 
-  function activateCheckpoint() {
-    const c = currentLevel().checkpoint;
-    if (!c || c.active || !overlap(player,c)) return;
-
-    c.active = true;
-    checkpointPos = {x:c.x, y:c.y-c.h};
-    burst(c.x+c.w/2,c.y+c.h/2,"#b8ff85",20);
-    setStatus("CHECKPOINT ACTIVATED");
+  function die() {
+    if (player.invulnerable > 0 || mode !== "playing") return;
+    stageDeaths++;
+    cameraShake = 12;
+    flash = 0.3;
+    burst(player.x + player.w / 2, player.y + player.h / 2, "#ff5577", 20);
+    gravity = checkpoint.gravity;
+    resetPlayer(checkpoint, 1.1);
+    showToast("危険！ チェックポイントから再開");
   }
 
   function clearStage() {
     if (mode !== "playing") return;
-    burst(player.x,player.y,"#bd72ff",36);
-
-    if (stage < levels.length-1) {
-      mode = "transition";
-      setStatus("STAGE CLEAR！");
-      setTimeout(() => {
-        // 二重遷移を防ぐ
-        if (mode === "transition") loadStage(stage+1);
-      }, 1100);
-    } else {
-      mode = "victory";
-      setStatus("全ステージクリア！ ECHO SHIFT COMPLETE！");
-    }
+    burst(player.x + player.w / 2, player.y + player.h / 2, "#61f4ff", 35);
+    mode = "stageclear";
+    transitionTimer = 1.4;
+    cameraShake = 5;
+    flash = 0.4;
+    saveDirty = true;
   }
 
-  // 各軸ごとに衝突を解決することで、床や壁を通り抜けにくくする。
-  function movePlayer() {
-    const levelSolids = solids();
+  function completeGame() {
+    mode = "victory";
+    bestTime = bestTime === null ? elapsed : Math.min(bestTime, elapsed);
+    saveProgress();
+    showToast("全ステージクリア！");
+  }
 
-    player.x += player.vx;
-    for (const s of levelSolids) {
-      if (!overlap(player,s)) continue;
-
-      if (player.vx > 0) player.x = s.x-player.w;
-      else if (player.vx < 0) player.x = s.x+s.w;
-      player.vx = 0;
+  function getSolids() {
+    const solids = stage.platforms.slice();
+    for (const door of stage.doors) {
+      if (!door.open) solids.push(door);
     }
-    player.x = Math.max(0,Math.min(W-player.w,player.x));
+    return solids;
+  }
 
+  function movePlayer(dt) {
+    const oldX = player.x;
     const oldY = player.y;
-    player.y += player.vy;
+
+    const direction = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+    if (direction !== 0) player.facing = direction;
+
+    const accel = player.grounded ? 2200 : 1300;
+    const targetVx = direction * player.speed;
+    player.vx += clamp(targetVx - player.vx, -accel * dt, accel * dt);
+
+    if (direction === 0) {
+      player.vx *= Math.pow(player.grounded ? 0.001 : 0.12, dt);
+      if (Math.abs(player.vx) < 4) player.vx = 0;
+    }
+
+    player.x += player.vx * dt;
+    player.x = clamp(player.x, 0, W - player.w);
+
+    let solids = getSolids();
+
+    for (const s of solids) {
+      if (!overlap(player, s)) continue;
+      if (player.vx > 0 && oldX + player.w <= s.x + 4) {
+        player.x = s.x - player.w;
+        player.vx = 0;
+      } else if (player.vx < 0 && oldX >= s.x + s.w - 4) {
+        player.x = s.x + s.w;
+        player.vx = 0;
+      } else if (oldY + player.h <= s.y + 8 || oldY >= s.y + s.h - 8) {
+        continue;
+      } else {
+        const leftPen = player.x + player.w - s.x;
+        const rightPen = s.x + s.w - player.x;
+        player.x = leftPen < rightPen ? s.x - player.w : s.x + s.w;
+        player.vx = 0;
+      }
+    }
+
+    player.vy += gravity * 1450 * dt;
+    player.vy = clamp(player.vy, -760, 760);
+    player.y += player.vy * dt;
     player.grounded = false;
 
-    for (const s of levelSolids) {
-      if (!overlap(player,s)) continue;
+    for (const s of solids) {
+      if (!overlap(player, s)) continue;
 
-      if (player.vy > 0 && oldY+player.h <= s.y+Math.abs(player.vy)+1) {
-        player.y = s.y-player.h;
+      if (gravity === 1 && player.vy >= 0 && oldY + player.h <= s.y + 12) {
+        player.y = s.y - player.h;
         player.vy = 0;
-        if (gravity === 1) player.grounded = true;
-      } else if (player.vy < 0 &&
-          oldY >= s.y+s.h-Math.abs(player.vy)-1) {
-        player.y = s.y+s.h;
+        player.grounded = true;
+      } else if (gravity === -1 && player.vy <= 0 && oldY >= s.y + s.h - 12) {
+        player.y = s.y + s.h;
         player.vy = 0;
-        if (gravity === -1) player.grounded = true;
+        player.grounded = true;
       } else {
-        // 反転直後などの重なりを解消
-        if (gravity === 1 && player.vy >= 0) {
-          player.y = s.y-player.h;
-          player.vy = 0;
-          player.grounded = true;
-        } else if (gravity === -1 && player.vy <= 0) {
-          player.y = s.y+s.h;
-          player.vy = 0;
-          player.grounded = true;
+        const topPen = player.y + player.h - s.y;
+        const bottomPen = s.y + s.h - player.y;
+        if (topPen < bottomPen) player.y = s.y - player.h;
+        else player.y = s.y + s.h;
+        player.vy = 0;
+      }
+    }
+
+    if (player.grounded) player.coyote = 0.11;
+    else player.coyote = Math.max(0, player.coyote - dt);
+
+    player.jumpBuffer = Math.max(0, player.jumpBuffer - dt);
+    if (player.jumpBuffer > 0 && (player.grounded || player.coyote > 0)) {
+      player.vy = -gravity * player.jumpPower;
+      player.grounded = false;
+      player.coyote = 0;
+      player.jumpBuffer = 0;
+      burst(player.x + player.w / 2, gravity === 1 ? player.y + player.h : player.y, "#d9fbff", 5);
+    }
+
+    player.invulnerable = Math.max(0, player.invulnerable - dt);
+
+    if (player.y > H + 80 || player.y + player.h < -80) {
+      die();
+      return;
+    }
+
+    for (const hazard of stage.hazards) {
+      if (overlap(player, hazard)) {
+        die();
+        return;
+      }
+    }
+
+    for (const sw of stage.switches) {
+      if (overlap(player, sw)) activateSwitch(sw);
+    }
+
+    for (const c of stage.checkpoints) {
+      if (overlap(player, c)) activateCheckpoint(c);
+    }
+
+    for (const shard of stage.shards) {
+      if (shard.collected) continue;
+      const box = { x: shard.x - 10, y: shard.y - 10, w: 20, h: 20 };
+      if (overlap(player, box)) {
+        shard.collected = true;
+        shardsCollected++;
+        burst(shard.x, shard.y, "#ffe98a", 12);
+        showToast("結晶 +1");
+        saveDirty = true;
+      }
+    }
+
+    if (overlap(player, stage.goal)) clearStage();
+
+    if (player.x !== oldX || player.y !== oldY) saveDirty = true;
+  }
+
+  function update(dt) {
+    if (mode === "playing") {
+      elapsed += dt;
+      movePlayer(dt);
+    } else if (mode === "stageclear") {
+      transitionTimer -= dt;
+      if (transitionTimer <= 0) {
+        if (stageIndex < levels.length - 1) {
+          loadStage(stageIndex + 1, true);
+        } else {
+          completeGame();
         }
       }
     }
 
-    // 天井・床の外に出ないようにする
-    if (player.y < 12) {
-      player.y = 12;
-      if (player.vy < 0) player.vy = 0;
-      if (gravity === -1) player.grounded = true;
-    }
-    if (player.y+player.h > H) {
-      player.y = H-player.h;
-      if (player.vy > 0) player.vy = 0;
-      if (gravity === 1) player.grounded = true;
-    }
-  }
-
-  function update() {
-    frame++;
+    cameraShake = Math.max(0, cameraShake - dt * 28);
+    flash = Math.max(0, flash - dt);
 
     for (const p of particles) {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.life--;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vx *= Math.pow(0.2, dt);
+      p.vy *= Math.pow(0.2, dt);
+      p.life -= dt;
     }
     particles = particles.filter(p => p.life > 0);
 
-    if (flash > 0) flash--;
-    if (invulnerable > 0) invulnerable--;
+    updateHud();
 
-    if (mode !== "playing") return;
-
-    const direction =
-      (input.right || keys.ArrowRight || keys.d ? 1 : 0) -
-      (input.left || keys.ArrowLeft || keys.a ? 1 : 0);
-
-    player.vx = direction * 3.5;
-    player.vy += gravity * 0.42;
-    player.vy = Math.max(-9.5,Math.min(9.5,player.vy));
-
-    movePlayer();
-
-    const level = currentLevel();
-
-    activateSwitch();
-    activateCheckpoint();
-
-    if (invulnerable === 0 &&
-        level.hazards.some(h => overlap(player,h))) {
-      respawn();
-      return;
+    if (saveDirty && mode === "playing") {
+      saveDirty = false;
+      saveProgress();
     }
+  }
 
-    if (level.goal && overlap(player,level.goal)) {
-      clearStage();
-      return;
-    }
+  function updateHud() {
+    $("stageStat").textContent = stage ? `${stageIndex + 1}/${levels.length}` : "—";
+    $("shardStat").textContent = String(shardsCollected);
+    $("timeStat").textContent = fmtTime(elapsed);
+    $("gravityStat").textContent = gravity === 1 ? "DOWN" : "UP";
+    $("pauseBtn").textContent = mode === "paused" ? "▶ 再開" : "Ⅱ 一時停止";
   }
 
   function drawBackground() {
-    const bg = ctx.createLinearGradient(0,0,W,H);
-    bg.addColorStop(0,"#111b36");
-    bg.addColorStop(1,"#070a16");
-    ctx.fillStyle = bg;
-    ctx.fillRect(0,0,W,H);
+    const gradient = ctx.createLinearGradient(0, 0, 0, H);
+    gradient.addColorStop(0, "#080d1c");
+    gradient.addColorStop(0.55, "#101a32");
+    gradient.addColorStop(1, "#080d1c");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, W, H);
 
-    for (let i=0; i<75; i++) {
-      const x = (i*137+31)%W;
-      const y = (i*83+17)%H;
-      ctx.globalAlpha = .25+((i%5)/10);
-      ctx.fillStyle = "#9ccfff";
-      ctx.fillRect(x,y,2,2);
+    ctx.save();
+    for (let i = 0; i < 90; i++) {
+      const x = (i * 137.5 + 17) % W;
+      const y = (i * 79.3 + 13) % H;
+      const twinkle = 0.35 + 0.65 * Math.abs(Math.sin(elapsed * 1.3 + i));
+      ctx.globalAlpha = twinkle * 0.7;
+      ctx.fillStyle = i % 5 === 0 ? "#61f4ff" : "#a8c7ff";
+      ctx.fillRect(x, y, i % 7 === 0 ? 2 : 1, i % 7 === 0 ? 2 : 1);
     }
-    ctx.globalAlpha = 1;
+    ctx.restore();
 
-    ctx.strokeStyle = "rgba(75,122,180,.08)";
+    ctx.save();
+    ctx.globalAlpha = 0.07;
+    ctx.strokeStyle = "#61f4ff";
     ctx.lineWidth = 1;
-    for (let x=0; x<W; x+=40) {
-      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+    const offset = (elapsed * 12) % 48;
+    for (let x = -48 + offset; x < W + 48; x += 48) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, H);
+      ctx.stroke();
     }
-    for (let y=0; y<H; y+=40) {
-      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+    for (let y = 0; y < H; y += 48) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+      ctx.stroke();
     }
+    ctx.restore();
   }
 
   function drawPlatform(p) {
-    ctx.fillStyle = "#263858";
-    ctx.fillRect(p.x,p.y,p.w,p.h);
-    ctx.fillStyle = "#65eaff";
-    ctx.fillRect(p.x,p.y,p.w,3);
-    ctx.fillStyle = "rgba(112,245,255,.07)";
-    ctx.fillRect(p.x,p.y+3,p.w,Math.max(0,p.h-3));
+    const gradient = ctx.createLinearGradient(p.x, p.y, p.x, p.y + p.h);
+    gradient.addColorStop(0, "#284568");
+    gradient.addColorStop(0.2, "#182d4b");
+    gradient.addColorStop(1, "#0d1729");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(p.x, p.y, p.w, p.h);
+    ctx.fillStyle = "#61f4ff";
+    ctx.globalAlpha = 0.8;
+    ctx.fillRect(p.x, p.y, p.w, 3);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = "#3a6585";
+    ctx.strokeRect(p.x + .5, p.y + .5, p.w - 1, p.h - 1);
+    ctx.fillStyle = "#54769a";
+    for (let x = p.x + 10; x < p.x + p.w - 5; x += 28) {
+      ctx.fillRect(x, p.y + p.h - 4, 10, 1);
+    }
   }
 
   function drawHazard(h) {
     ctx.save();
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = "#ff365e";
-    ctx.fillStyle = "#ff365e";
-    ctx.fillRect(h.x,h.y,h.w,h.h);
-
-    ctx.fillStyle = "#ff9eae";
-    const count = Math.max(1,Math.floor(h.w/14));
-    for (let i=0;i<count;i++) {
-      const tw = h.w/count;
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = "#ff466b";
+    const g = ctx.createLinearGradient(h.x, h.y, h.x, h.y + h.h);
+    g.addColorStop(0, "#ff8295");
+    g.addColorStop(1, "#8b173e");
+    ctx.fillStyle = g;
+    ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.fillStyle = "#ffd0d7";
+    for (let x = h.x + 3; x < h.x + h.w - 3; x += 12) {
       ctx.beginPath();
-      ctx.moveTo(h.x+i*tw,h.y);
-      ctx.lineTo(h.x+(i+.5)*tw,h.y-8);
-      ctx.lineTo(h.x+(i+1)*tw,h.y);
+      ctx.moveTo(x, h.y + h.h);
+      ctx.lineTo(x + 6, h.y + 3);
+      ctx.lineTo(x + 10, h.y + h.h);
       ctx.fill();
     }
     ctx.restore();
   }
 
-  function drawSwitch(s) {
+  function drawDoor(d) {
+    if (d.open) {
+      ctx.save();
+      ctx.globalAlpha = 0.18 + Math.sin(elapsed * 5) * 0.06;
+      ctx.fillStyle = "#a78bfa";
+      ctx.fillRect(d.x, d.y, d.w, d.h);
+      ctx.restore();
+      return;
+    }
     ctx.save();
-    ctx.shadowBlur = 16;
-    ctx.shadowColor = switchOn ? "#70f5ff" : "#ffbd60";
-    ctx.fillStyle = switchOn ? "#70f5ff" : "#ffbd60";
-    ctx.fillRect(s.x,s.y,s.w,s.h);
-    ctx.fillStyle = "#10182d";
-    ctx.fillRect(s.x+6,s.y+6,s.w-12,s.h-12);
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = "#a78bfa";
+    ctx.fillStyle = "#4c2b80";
+    ctx.fillRect(d.x, d.y, d.w, d.h);
+    ctx.fillStyle = "#bba5ff";
+    ctx.fillRect(d.x + 4, d.y + 4, d.w - 8, d.h - 8);
+    ctx.fillStyle = "#30204e";
+    for (let y = d.y + 10; y < d.y + d.h; y += 14) {
+      ctx.fillRect(d.x + 3, y, d.w - 6, 3);
+    }
+    ctx.restore();
+  }
+
+  function drawSwitch(sw) {
+    ctx.save();
+    ctx.shadowBlur = sw.activated ? 16 : 7;
+    ctx.shadowColor = sw.activated ? "#61ffbd" : "#a78bfa";
+    ctx.fillStyle = sw.activated ? "#52ffc0" : "#7357ba";
+    ctx.fillRect(sw.x, sw.y, sw.w, sw.h);
+    ctx.fillStyle = sw.activated ? "#d8fff0" : "#d6c7ff";
+    ctx.fillRect(sw.x + 5, sw.y + 5, sw.w - 10, 7);
+    ctx.fillStyle = "#141d32";
+    ctx.fillRect(sw.x + 6, sw.y + 17, sw.w - 12, 12);
     ctx.restore();
   }
 
   function drawCheckpoint(c) {
     ctx.save();
-    ctx.shadowBlur = 14;
-    ctx.shadowColor = c.active ? "#b8ff85" : "#7393b5";
-    ctx.fillStyle = c.active ? "#b8ff85" : "#52708f";
-    ctx.fillRect(c.x,c.y,c.w,c.h);
-    ctx.fillStyle = "#eaffdb";
-    ctx.fillRect(c.x+8,c.y+5,9,8);
+    ctx.shadowBlur = c.activated ? 18 : 5;
+    ctx.shadowColor = "#69ffb5";
+    ctx.fillStyle = c.activated ? "#69ffb5" : "#447e81";
+    ctx.fillRect(c.x, c.y, c.w, c.h);
+    ctx.fillStyle = "#eafff6";
+    ctx.fillRect(c.x + 4, c.y + 5, c.w - 8, 4);
+    ctx.beginPath();
+    ctx.moveTo(c.x + c.w / 2, c.y + 10);
+    ctx.lineTo(c.x + c.w / 2, c.y + 27);
+    ctx.strokeStyle = "#eafff6";
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawShard(s) {
+    if (s.collected) return;
+    const bob = Math.sin(elapsed * 3 + s.x * 0.02) * 4;
+    ctx.save();
+    ctx.translate(s.x, s.y + bob);
+    ctx.rotate(elapsed * 0.7);
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = "#ffe98a";
+    ctx.fillStyle = "#fff0a1";
+    ctx.beginPath();
+    ctx.moveTo(0, -11);
+    ctx.lineTo(8, -2);
+    ctx.lineTo(5, 9);
+    ctx.lineTo(-5, 9);
+    ctx.lineTo(-8, -2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.globalAlpha = 0.8;
+    ctx.fillRect(-1, -7, 2, 10);
     ctx.restore();
   }
 
   function drawGoal(g) {
-    const pulse = 1+Math.sin(frame*.08)*.12;
+    const pulse = 1 + Math.sin(elapsed * 3) * 0.06;
     ctx.save();
-    ctx.translate(g.x+g.w/2,g.y+g.h/2);
-    ctx.scale(pulse,pulse);
+    ctx.translate(g.x + g.w / 2, g.y + g.h / 2);
+    ctx.scale(pulse, pulse);
     ctx.shadowBlur = 22;
-    ctx.shadowColor = "#bd72ff";
-    ctx.fillStyle = "#a44cff";
-    ctx.fillRect(-g.w/2,-g.h/2,g.w,g.h);
-    ctx.fillStyle = "#f1d8ff";
-    ctx.fillRect(-g.w/2+8,-g.h/2+8,g.w-16,g.h-16);
+    ctx.shadowColor = "#61f4ff";
+    ctx.strokeStyle = "#61f4ff";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(-g.w / 2, -g.h / 2, g.w, g.h);
+    ctx.fillStyle = "#61f4ff20";
+    ctx.fillRect(-g.w / 2, -g.h / 2, g.w, g.h);
+    ctx.beginPath();
+    ctx.arc(0, 0, 10 + Math.sin(elapsed * 5) * 2, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-7, 0);
+    ctx.lineTo(7, 0);
+    ctx.moveTo(0, -7);
+    ctx.lineTo(0, 7);
+    ctx.stroke();
     ctx.restore();
   }
 
   function drawPlayer() {
-    if (invulnerable > 0 && Math.floor(frame/4)%2===0) return;
-
+    if (player.invulnerable > 0 && Math.floor(elapsed * 18) % 2 === 0) return;
     ctx.save();
+    const x = player.x;
+    const y = player.y;
     ctx.shadowBlur = 18;
-    ctx.shadowColor = gravity === 1 ? "#70f5ff" : "#bd72ff";
-    ctx.fillStyle = gravity === 1 ? "#70f5ff" : "#bd72ff";
-    ctx.fillRect(player.x,player.y,player.w,player.h);
+    ctx.shadowColor = "#61f4ff";
+    const grad = ctx.createLinearGradient(x, y, x + player.w, y + player.h);
+    grad.addColorStop(0, "#e5ffff");
+    grad.addColorStop(0.45, "#61f4ff");
+    grad.addColorStop(1, "#1d8bb6");
+    ctx.fillStyle = grad;
+    ctx.fillRect(x + 3, y + 3, player.w - 6, player.h - 6);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#092139";
+    const eyeX = player.facing > 0 ? x + 16 : x + 6;
+    ctx.fillRect(eyeX, y + 10, 6, 4);
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(player.x+4,player.y+7,5,5);
-    ctx.fillRect(player.x+13,player.y+7,5,5);
+    ctx.fillRect(eyeX + 1, y + 10, 2, 2);
+    ctx.fillStyle = "#c9ffff";
+    ctx.fillRect(x + 6, y + player.h - 5, player.w - 12, 2);
     ctx.restore();
   }
 
   function drawParticles() {
+    ctx.save();
     for (const p of particles) {
-      ctx.globalAlpha = Math.max(0,p.life/38);
+      ctx.globalAlpha = clamp(p.life / p.maxLife, 0, 1);
       ctx.fillStyle = p.color;
-      ctx.fillRect(p.x,p.y,4,4);
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = p.color;
+      ctx.fillRect(p.x, p.y, p.size, p.size);
     }
-    ctx.globalAlpha = 1;
+    ctx.restore();
   }
 
-  function drawOverlay(title,subtitle,buttonText) {
-    ctx.fillStyle = "rgba(4,7,19,.82)";
-    ctx.fillRect(0,0,W,H);
+  function drawWorld() {
+    if (!stage) return;
+    for (const p of stage.platforms) drawPlatform(p);
+    for (const h of stage.hazards) drawHazard(h);
+    for (const d of stage.doors) drawDoor(d);
+    for (const sw of stage.switches) drawSwitch(sw);
+    for (const c of stage.checkpoints) drawCheckpoint(c);
+    for (const s of stage.shards) drawShard(s);
+    drawGoal(stage.goal);
+    drawPlayer();
+    drawParticles();
+
+    ctx.save();
+    ctx.fillStyle = "#d9e8ff";
+    ctx.font = "700 16px system-ui";
+    ctx.fillText(stage.name, 24, 29);
+    ctx.fillStyle = "#8da9ce";
+    ctx.font = "12px system-ui";
+    ctx.fillText(stage.subtitle, 24, 48);
+    ctx.restore();
+  }
+
+  function drawCenteredPanel(title, lines, buttonText) {
+    ctx.save();
+    ctx.fillStyle = "#050914c9";
+    ctx.fillRect(0, 0, W, H);
+
+    const panelW = Math.min(650, W - 40);
+    const panelH = Math.min(340, 110 + lines.length * 30);
+    const px = (W - panelW) / 2;
+    const py = (H - panelH) / 2;
+
+    ctx.shadowBlur = 30;
+    ctx.shadowColor = "#244e85";
+    ctx.fillStyle = "#101b31";
+    ctx.fillRect(px, py, panelW, panelH);
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "#36557d";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(px, py, panelW, panelH);
 
     ctx.textAlign = "center";
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = "#70f5ff";
-    ctx.fillStyle = "#70f5ff";
-    ctx.font = "bold 38px system-ui";
-    ctx.fillText(title,W/2,175);
+    ctx.fillStyle = "#61f4ff";
+    ctx.font = "900 36px system-ui";
+    ctx.fillText(title, W / 2, py + 57);
 
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "#eaf1ff";
-    ctx.font = "17px system-ui";
-    ctx.fillText(subtitle,W/2,220);
+    ctx.fillStyle = "#c5d7ef";
+    ctx.font = "15px system-ui";
+    lines.forEach((line, i) => ctx.fillText(line, W / 2, py + 100 + i * 27));
 
-    ctx.fillStyle = "#bd72ff";
-    ctx.fillRect(W/2-100,260,200,46);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 18px system-ui";
-    ctx.fillText(buttonText,W/2,289);
+    if (buttonText) {
+      ctx.fillStyle = "#0b7e98";
+      ctx.fillRect(W / 2 - 125, py + panelH - 57, 250, 38);
+      ctx.strokeStyle = "#61f4ff";
+      ctx.strokeRect(W / 2 - 125, py + panelH - 57, 250, 38);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "800 16px system-ui";
+      ctx.fillText(buttonText, W / 2, py + panelH - 32);
+    }
+    ctx.restore();
   }
 
-  function draw() {
+  function render() {
+    ctx.save();
+    if (cameraShake > 0) {
+      ctx.translate(
+        (Math.random() - 0.5) * cameraShake,
+        (Math.random() - 0.5) * cameraShake
+      );
+    }
+
     drawBackground();
 
-    const level = currentLevel();
+    if (mode === "title") {
+      drawCenteredPanel("ECHO SHIFT", [
+        "重力を反転させ、出口を目指せ。",
+        "スイッチ、危険地帯、結晶を突破しよう。",
+        "全5ステージ / セーブ対応 / iPad操作対応"
+      ], "タップ / Space でスタート");
+    } else {
+      drawWorld();
 
-    for (const p of level.solids) drawPlatform(p);
-    for (const h of level.hazards) drawHazard(h);
-
-    if (level.switch) drawSwitch(level.switch);
-    if (level.checkpoint) drawCheckpoint(level.checkpoint);
-
-    if (level.door && !switchOn) {
-      ctx.save();
-      ctx.shadowBlur = 15;
-      ctx.shadowColor = "#ff587d";
-      ctx.fillStyle = "#b83762";
-      ctx.fillRect(level.door.x,level.door.y,level.door.w,level.door.h);
-      ctx.restore();
+      if (mode === "paused") {
+        drawCenteredPanel("PAUSED", [
+          "ゲームは一時停止中。",
+          "再開ボタンまたは P キーで続行。"
+        ], "再開");
+      } else if (mode === "stageclear") {
+        drawCenteredPanel("STAGE CLEAR", [
+          stage.name,
+          `結晶 ${shardsCollected} / ${totalShards}`,
+          "次のステージへ移動中..."
+        ], "");
+      } else if (mode === "victory") {
+        drawCenteredPanel("ALL CLEAR", [
+          "全ステージをクリアした！",
+          `タイム: ${fmtTime(elapsed)}`,
+          `結晶: ${totalShardsCollectedInRun()} 個`,
+          bestTime === null ? "" : `ベストタイム: ${fmtTime(bestTime)}`
+        ].filter(Boolean), "タップ / Space で再挑戦");
+      }
     }
-
-    drawGoal(level.goal);
-    drawParticles();
-    drawPlayer();
 
     if (flash > 0) {
-      ctx.fillStyle = `rgba(112,245,255,${flash*.012})`;
-      ctx.fillRect(0,0,W,H);
+      ctx.fillStyle = `rgba(97,244,255,${Math.min(0.28, flash * 0.8)})`;
+      ctx.fillRect(0, 0, W, H);
     }
+    ctx.restore();
+  }
 
+  function totalShardsCollectedInRun() {
+    return runShardCount;
+  }
+
+  let runShardCount = 0;
+  const originalLoadStage = loadStage;
+
+  function loadStageWithRunCount(index, preserveElapsed = false) {
+    originalLoadStage(index, preserveElapsed);
+  }
+
+  function saveProgress() {
+    try {
+      const data = {
+        version: 3,
+        stageIndex,
+        elapsed,
+        shardsCollected,
+        runShardCount,
+        gravity,
+        checkpoint,
+        player: { x: player.x, y: player.y },
+        stage: stage ? {
+          switches: stage.switches.map(s => s.activated),
+          doors: stage.doors.map(d => d.open),
+          checkpoints: stage.checkpoints.map(c => c.activated),
+          shards: stage.shards.map(s => s.collected)
+        } : null,
+        bestTime,
+        mode: mode === "victory" ? "victory" : "playing"
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    } catch (error) {
+      console.warn("セーブに失敗しました:", error);
+    }
+  }
+
+  function restoreProgress() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      if (!data || data.version !== 3 ||
+          !Number.isInteger(data.stageIndex) ||
+          data.stageIndex < 0 || data.stageIndex >= levels.length) {
+        return false;
+      }
+
+      loadStage(data.stageIndex, true);
+      elapsed = Number.isFinite(data.elapsed) ? Math.max(0, data.elapsed) : 0;
+      shardsCollected = Number.isFinite(data.shardsCollected) ? data.shardsCollected : 0;
+      runShardCount = Number.isFinite(data.runShardCount) ? data.runShardCount : shardsCollected;
+      gravity = data.gravity === -1 ? -1 : 1;
+
+      if (data.checkpoint && Number.isFinite(data.checkpoint.x) &&
+          Number.isFinite(data.checkpoint.y)) {
+        checkpoint = {
+          x: clamp(data.checkpoint.x, 0, W - player.w),
+          y: clamp(data.checkpoint.y, -100, H + 100),
+          gravity: data.checkpoint.gravity === -1 ? -1 : 1
+        };
+      }
+
+      if (data.stage) {
+        stage.switches.forEach((s, i) => {
+          s.activated = Boolean(data.stage.switches?.[i]);
+        });
+        stage.doors.forEach(d => {
+          const matching = stage.switches.find(s => s.doorId === d.id && s.activated);
+          d.open = Boolean(matching);
+        });
+        stage.checkpoints.forEach((c, i) => {
+          c.activated = Boolean(data.stage.checkpoints?.[i]);
+        });
+        stage.shards.forEach((s, i) => {
+          s.collected = Boolean(data.stage.shards?.[i]);
+        });
+      }
+
+      if (data.player && Number.isFinite(data.player.x) && Number.isFinite(data.player.y)) {
+        resetPlayer({
+          x: clamp(data.player.x, 0, W - player.w),
+          y: clamp(data.player.y, -100, H + 100)
+        }, 0.6);
+      } else {
+        resetPlayer(checkpoint, 0.6);
+      }
+
+      bestTime = Number.isFinite(data.bestTime) ? data.bestTime : null;
+      if (data.mode === "victory") mode = "victory";
+      updateHud();
+      return true;
+    } catch (error) {
+      console.warn("セーブデータの読み込みに失敗しました:", error);
+      return false;
+    }
+  }
+
+  function bindHoldButton(id, property) {
+    const button = $(id);
+    const down = event => {
+      event.preventDefault();
+      input[property] = true;
+      try { button.setPointerCapture(event.pointerId); } catch (_) {}
+    };
+    const up = event => {
+      event.preventDefault();
+      input[property] = false;
+    };
+    button.addEventListener("pointerdown", down);
+    button.addEventListener("pointerup", up);
+    button.addEventListener("pointercancel", up);
+    button.addEventListener("lostpointercapture", up);
+    button.addEventListener("contextmenu", event => event.preventDefault());
+  }
+
+  bindHoldButton("leftBtn", "left");
+  bindHoldButton("rightBtn", "right");
+
+  $("jumpBtn").addEventListener("pointerdown", event => {
+    event.preventDefault();
+    jump();
+  });
+  $("shiftBtn").addEventListener("pointerdown", event => {
+    event.preventDefault();
+    toggleGravity();
+  });
+
+  $("pauseBtn").addEventListener("click", setPaused);
+  $("restartBtn").addEventListener("click", restartStage);
+  $("saveBtn").addEventListener("click", () => {
+    saveProgress();
+    showToast("進行状況を保存しました");
+  });
+
+  canvas.addEventListener("pointerdown", event => {
+    event.preventDefault();
     if (mode === "title") {
-      drawOverlay("ECHO SHIFT","重力を変え、世界の謎を解け","START");
-    } else if (mode === "transition") {
-      drawOverlay("STAGE CLEAR","次のステージへ……","LOADING");
+      startGame();
+    } else if (mode === "paused") {
+      mode = "playing";
     } else if (mode === "victory") {
-      drawOverlay("ALL CLEAR","ECHO SHIFT COMPLETE","PLAY AGAIN");
+      runShardCount = 0;
+      loadStage(0);
+    } else if (mode === "playing") {
+      const rect = canvas.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width * W;
+      if (x < W * 0.32) input.left = true;
+      else if (x < W * 0.58) jump();
+      else if (x < W * 0.78) input.right = true;
+      else toggleGravity();
     }
-  }
-
-  function loop(time) {
-    // 時間差が大きいときの急激な移動を防ぐ
-    const dt = previousTime ? Math.min((time-previousTime)/16.67,2) : 1;
-    previousTime = time;
-
-    // 通常の操作感を維持しながら、フレーム差を制限
-    if (dt > 0) update();
-    draw();
-    requestAnimationFrame(loop);
-  }
-
-  // キーボード操作
-  document.addEventListener("keydown",e => {
-    const key = e.key.length===1 ? e.key.toLowerCase() : e.key;
-
-    if (["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"," "].includes(e.key)) {
-      e.preventDefault();
-    }
-
-    if (!keys[key]) {
-      if (key==="e") shiftGravity();
-      if (key===" " || key==="ArrowUp" || key==="w") {
-        if (mode==="title") startGame();
-        else jump();
-      }
-      if (key==="r") restartStage();
-      if ((key==="Enter") && (mode==="title" || mode==="victory")) {
-        startGame();
-      }
-    }
-    keys[key] = true;
   });
-
-  document.addEventListener("keyup",e => {
-    const key = e.key.length===1 ? e.key.toLowerCase() : e.key;
-    keys[key] = false;
-  });
-
-  window.addEventListener("blur",() => {
+  canvas.addEventListener("pointerup", () => {
     input.left = false;
     input.right = false;
-    for (const key of Object.keys(keys)) keys[key] = false;
+  });
+  canvas.addEventListener("pointercancel", () => {
+    input.left = false;
+    input.right = false;
+  });
+  canvas.addEventListener("contextmenu", event => event.preventDefault());
+
+  window.addEventListener("keydown", event => {
+    const k = event.key.toLowerCase();
+    if (["arrowleft", "arrowright", "arrowup", " ", "shift"].includes(k)) {
+      event.preventDefault();
+    }
+
+    if (keys.has(k)) return;
+    keys.add(k);
+
+    if (k === "arrowleft" || k === "a") input.left = true;
+    if (k === "arrowright" || k === "d") input.right = true;
+
+    if (k === " " || k === "arrowup" || k === "w") {
+      if (mode === "title") startGame();
+      else if (mode === "victory") {
+        runShardCount = 0;
+        loadStage(0);
+      } else jump();
+    }
+
+    if (k === "x" || k === "shift") toggleGravity();
+    if (k === "p" || k === "escape") setPaused();
+    if (k === "r") restartStage();
+    if (k === "e" && mode === "title") startGame();
   });
 
-  function bindHold(id,side) {
-    const button = document.getElementById(id);
+  window.addEventListener("keyup", event => {
+    const k = event.key.toLowerCase();
+    keys.delete(k);
+    if (k === "arrowleft" || k === "a") input.left = false;
+    if (k === "arrowright" || k === "d") input.right = false;
+  });
 
-    const start = e => {
-      e.preventDefault();
-      input[side] = true;
-      button.classList.add("active");
-      try { button.setPointerCapture(e.pointerId); } catch (_) {}
-    };
-
-    const stop = e => {
-      e.preventDefault();
-      input[side] = false;
-      button.classList.remove("active");
-    };
-
-    button.addEventListener("pointerdown",start);
-    button.addEventListener("pointerup",stop);
-    button.addEventListener("pointercancel",stop);
-    button.addEventListener("lostpointercapture",() => {
-      input[side] = false;
-      button.classList.remove("active");
-    });
-  }
-
-  function bindPress(id,action) {
-    const button = document.getElementById(id);
-    button.addEventListener("pointerdown",e => {
-      e.preventDefault();
-      action();
-    });
-  }
-
-  bindHold("left","left");
-  bindHold("right","right");
-  bindPress("jump",jump);
-  bindPress("shift",shiftGravity);
-
-  document.getElementById("retry").addEventListener("click",restartStage);
-
-  // タイトル画面上のSTART / PLAY AGAIN領域もタップ可能
-  canvas.addEventListener("pointerdown",e => {
-    if (mode!=="title" && mode!=="victory") return;
-    const bounds = canvas.getBoundingClientRect();
-    const x = (e.clientX-bounds.left)*W/bounds.width;
-    const y = (e.clientY-bounds.top)*H/bounds.height;
-
-    if (x>W/2-140 && x<W/2+140 && y>240 && y<330) {
-      startGame();
+  window.addEventListener("blur", () => {
+    input.left = false;
+    input.right = false;
+    keys.clear();
+    if (mode === "playing") {
+      pausedFrom = "playing";
+      mode = "paused";
     }
   });
 
-  updateHUD();
-  requestAnimationFrame(loop);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && mode === "playing") {
+      pausedFrom = "playing";
+      mode = "paused";
+    }
+  });
+
+  function gameLoop(timestamp) {
+    const dt = lastFrame === 0 ? 0 : Math.min(0.033, (timestamp - lastFrame) / 1000);
+    lastFrame = timestamp;
+    update(dt);
+    render();
+    requestAnimationFrame(gameLoop);
+  }
+
+  function boot() {
+    stage = cloneLevel(0);
+    const restored = restoreProgress();
+    if (!restored) {
+      mode = "title";
+      stage = cloneLevel(0);
+      $("status").textContent = "GRAVITY IS YOUR KEY";
+    }
+    updateHud();
+    requestAnimationFrame(gameLoop);
+  }
+
+  boot();
 })();
 </script>
 </body>
