@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080b18">
+  <title>ECHO SHIFT</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #080b18;
+      color: #eef5ff;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 12px;
+    }
+    h1 {
+      margin: 8px 0 4px;
+      letter-spacing: .18em;
+      color: #71f5ff;
+      text-shadow: 0 0 20px #36bce7;
+    }
+    .subtitle { color: #9caac9; margin: 0 0 16px; }
+    #game {
+      display: block;
+      width: 100%;
+      max-width: 800px;
+      height: auto;
+      border: 1px solid #34476e;
+      border-radius: 12px;
+      background: #10182d;
+      touch-action: none;
+    }
+    .hud {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 12px 2px;
+      color: #b6c8e8;
+      font-size: 14px;
+    }
+    button {
+      background: #172440;
+      color: #eafaff;
+      border: 1px solid #4e779c;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    button:active { background: #285273; }
+    .controls {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      width: 100%;
+      max-width: 800px;
+    }
+    .controls button { min-width: 64px; }
+    #message {
+      min-height: 28px;
+      margin: 12px 0;
+      color: #71f5ff;
+      text-align: center;
+    }
+    .help {
+      max-width: 800px;
+      color: #9caac9;
+      line-height: 1.8;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <h1>ECHO SHIFT</h1>
+  <p class="subtitle">THE WORLD IS NOT WHAT IT SEEMS.</p>
+
+  <canvas id="game" width="800" height="450"></canvas>
+
+  <div class="hud">
+    <span id="gravity">重力：↓ DOWN</span>
+    <span>目標：紫のポータルへ！</span>
+  </div>
+
+  <div class="controls">
+    <button id="left" aria-label="左へ移動">◀ 左</button>
+    <button id="right" aria-label="右へ移動">右 ▶</button>
+    <button id="jump">JUMP</button>
+    <button id="shift">重力反転</button>
+    <button id="restart">RETRY</button>
+  </div>
+
+  <p id="message">ポータルを目指そう。</p>
+  <p class="help">
+    PC：← → / A D で移動、Spaceでジャンプ、Eで重力反転、Rでリトライ。<br>
+    iPad：画面下のボタンで操作。足場を利用してポータルへ進もう！
+  </p>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      const message = document.getElementById("message");
+      const gravityLabel = document.getElementById("gravity");
+
+      const platforms = [
+        { x: 0, y: 410, w: 800, h: 40 },
+        { x: 120, y: 330, w: 150, h: 14 },
+        { x: 340, y: 260, w: 130, h: 14 },
+        { x: 540, y: 190, w: 140, h: 14 },
+        { x: 100, y: 100, w: 150, h: 14 },
+        { x: 0, y: 0, w: 800, h: 12 }
+      ];
+
+      const player = {
+        x: 45, y: 370, w: 24, h: 32,
+        vx: 0, vy: 0, speed: 3.6,
+        grounded: false
+      };
+
+      const goal = { x: 710, y: 130, w: 38, h: 55 };
+      const keys = {};
+      const held = { left: false, right: false };
+      let gravity = 1;
+      let won = false;
+      let frame = 0;
+
+      function reset() {
+        player.x = 45;
+        player.y = 370;
+        player.vx = player.vy = 0;
+        player.grounded = false;
+        gravity = 1;
+        won = false;
+        message.textContent = "ポータルを目指そう。";
+        updateHUD();
+      }
+
+      function updateHUD() {
+        gravityLabel.textContent =
+          gravity === 1 ? "重力：↓ DOWN" : "重力：↑ UP";
+      }
+
+      function shiftGravity() {
+        if (won) return;
+        gravity *= -1;
+        player.vy = 0;
+        player.grounded = false;
+        updateHUD();
+      }
+
+      function jump() {
+        if (player.grounded && !won) {
+          player.vy = -gravity * 9;
+          player.grounded = false;
+        }
+      }
+
+      function overlaps(a, b) {
+        return a.x < b.x + b.w && a.x + a.w > b.x &&
+               a.y < b.y + b.h && a.y + a.h > b.y;
+      }
+
+      function update() {
+        if (won) return;
+
+        player.vx = (held.right || keys.ArrowRight || keys.d ? player.speed : 0)
+                  - (held.left || keys.ArrowLeft || keys.a ? player.speed : 0);
+
+        const oldY = player.y;
+        player.x += player.vx;
+        player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+
+        player.vy += gravity * 0.42;
+        player.vy = Math.max(-10, Math.min(10, player.vy));
+        player.y += player.vy;
+        player.grounded = false;
+
+        for (const p of platforms) {
+          if (!overlaps(player, p)) continue;
+
+          if (gravity === 1 && oldY + player.h <= p.y + 8 && player.vy >= 0) {
+            player.y = p.y - player.h;
+            player.vy = 0;
+            player.grounded = true;
+          } else if (gravity === -1 &&
+                     oldY >= p.y + p.h - 8 && player.vy <= 0) {
+            player.y = p.y + p.h;
+            player.vy = 0;
+            player.grounded = true;
+          }
+        }
+
+        // 落下時は開始地点へ戻す
+        if (player.y > canvas.height + 30 ||
+            player.y + player.h < -30) {
+          reset();
+          message.textContent = "位置をリセットしたよ。もう一度！";
+        }
+
+        if (overlaps(player, goal)) {
+          won = true;
+          message.textContent = "STAGE CLEAR — 世界の法則を超えた！";
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const bg = ctx.createLinearGradient(0, 0, 800, 450);
+        bg.addColorStop(0, "#101a35");
+        bg.addColorStop(1, "#080b18");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, 800, 450);
+
+        // 背景の星
+        for (let i = 0; i < 65; i++) {
+          const x = (i * 137 + 23) % 800;
+          const y = (i * 83 + 17) % 450;
+          ctx.fillStyle = "rgba(139,196,255,0.5)";
+          ctx.fillRect(x, y, 2, 2);
+        }
+
+        // 足場
+        for (const p of platforms) {
+          ctx.fillStyle = "#263858";
+          ctx.fillRect(p.x, p.y, p.w, p.h);
+          ctx.fillStyle = "#63e8ff";
+          ctx.fillRect(p.x, p.y, p.w, 3);
+        }
+
+        // ゴールポータル
+        ctx.save();
+        ctx.shadowBlur = 22;
+        ctx.shadowColor = "#bc70ff";
+        ctx.fillStyle = "#a84eff";
+        ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
+        ctx.fillStyle = "#e7caff";
+        ctx.fillRect(goal.x + 8, goal.y + 7, goal.w - 16, goal.h - 14);
+        ctx.restore();
+
+        // プレイヤー
+        ctx.save();
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = "#61f5ff";
+        ctx.fillStyle = "#71f5ff";
+        ctx.fillRect(player.x, player.y, player.w, player.h);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(player.x + 5, player.y + 7, 5, 5);
+        ctx.fillRect(player.x + 15, player.y + 7, 5, 5);
+        ctx.restore();
+
+        if (won) {
+          ctx.fillStyle = "rgba(5,8,22,0.76)";
+          ctx.fillRect(0, 0, 800, 450);
+          ctx.textAlign = "center";
+          ctx.fillStyle = "#71f5ff";
+          ctx.font = "bold 38px system-ui";
+          ctx.fillText("STAGE CLEAR", 400, 215);
+          ctx.font = "18px system-ui";
+          ctx.fillStyle = "#ffffff";
+          ctx.fillText("Press R or RETRY to play again", 400, 255);
+        }
+      }
+
+      function loop() {
+        frame++;
+        update();
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      document.addEventListener("keydown", (e) => {
+        const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+        if (["ArrowLeft", "ArrowRight", " ", "ArrowUp", "ArrowDown"].includes(e.key)) {
+          e.preventDefault();
+        }
+        if (!keys[key] && (key === "e")) shiftGravity();
+        if (!keys[key] && (key === " " || key === "ArrowUp" || key === "w")) jump();
+        if (key === "r") reset();
+        keys[key] = true;
+      });
+
+      document.addEventListener("keyup", (e) => {
+        const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+        keys[key] = false;
+      });
+
+      function bindHold(id, side) {
+        const button = document.getElementById(id);
+        const start = (e) => {
+          e.preventDefault();
+          held[side] = true;
+        };
+        const stop = (e) => {
+          e.preventDefault();
+          held[side] = false;
+        };
+        button.addEventListener("pointerdown", start);
+        button.addEventListener("pointerup", stop);
+        button.addEventListener("pointercancel", stop);
+        button.addEventListener("lostpointercapture", () => held[side] = false);
+      }
+
+      bindHold("left", "left");
+      bindHold("right", "right");
+      document.getElementById("jump").addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        jump();
+      });
+      document.getElementById("shift").addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        shiftGravity();
+      });
+      document.getElementById("restart").addEventListener("click", reset);
+
+      updateHUD();
+      loop();
+    })();
+  </script>
+</body>
+</html>
